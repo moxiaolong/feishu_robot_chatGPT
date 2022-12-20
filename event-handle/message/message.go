@@ -41,38 +41,37 @@ func HandleMsgEvent(header map[string]string, event map[string]interface{}) erro
 	t = t[strings.Index(t, " ")+1:]
 	println("<<<<<<<<<<<<<<")
 	println(t)
-	completions, err := gtp.Completions(t)
-	if err != nil {
-		fmt.Printf("%v", err)
-		return nil
-	}
-	body := make(map[string]interface{})
-	//{
-	//    "content": "{\"text\":\"<at user_id=\\\"ou_155184d1e73cbfb8973e5a9e698e74f2\\\">Tom </at> test content\"}",
-	//    "msg_type": "text",
-	//    "uuid": "a0d69e20-1dd1-458b-k525-dfeca4015204"
-	//}
+	go func() {
+		completions, err := gtp.Completions(t)
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+		body := make(map[string]interface{})
+		//{
+		//    "content": "{\"text\":\"<at user_id=\\\"ou_155184d1e73cbfb8973e5a9e698e74f2\\\">Tom </at> test content\"}",
+		//    "msg_type": "text",
+		//    "uuid": "a0d69e20-1dd1-458b-k525-dfeca4015204"
+		//}
 
-	cbs, err := json.Marshal(&Text{Text: completions})
-	if err != nil {
-		fmt.Printf("%v", err)
-		return nil
-	}
+		cbs, err := json.Marshal(&Text{Text: completions})
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
 
-	body["content"] = strings.ReplaceAll(string(cbs), "\n", "\\\n")
-	body["msg_type"] = "text"
-	generateUUID, err := uuid.GenerateUUID()
-	if err != nil {
-		fmt.Printf("%v", err)
-		return nil
-	}
-	body["uuid"] = generateUUID
-	accessToken, err := feishu.GetTenantAccessToken()
-	if err != nil {
-		fmt.Printf("%v", err)
-		return nil
-	}
-	_, err = msg.ReplyMsg(messageId, accessToken, body)
+		body["content"] = strings.ReplaceAll(string(cbs), "\n", "\\\n")
+		body["msg_type"] = "text"
+		generateUUID, err := uuid.GenerateUUID()
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+		body["uuid"] = generateUUID
+		accessToken, err := feishu.GetTenantAccessToken()
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+		_, err = msg.ReplyMsg(messageId, accessToken, body)
+
+	}()
 	if err != nil {
 		fmt.Printf("%v", err)
 		return nil
